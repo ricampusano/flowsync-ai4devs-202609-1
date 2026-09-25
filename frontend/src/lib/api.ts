@@ -14,7 +14,14 @@ export interface AuthResult {
   token: string;
 }
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 async function parseErrorMessage(response: Response): Promise<string> {
   try {
@@ -40,7 +47,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(await parseErrorMessage(response));
+    throw new ApiError(await parseErrorMessage(response), response.status);
   }
 
   if (response.status === 204) {

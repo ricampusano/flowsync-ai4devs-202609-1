@@ -30,13 +30,18 @@ export function ProfilePage() {
       .catch((err) => {
         if (cancelled) return;
 
-        if (err instanceof ApiError) {
+        if (err instanceof ApiError && err.status === 401) {
           // El token guardado ya no es válido (expiró, fue revocado, etc.):
           // limpiamos la sesión en vez de dejar al usuario atascado en /profile.
           logout().then(() => navigate("/login", { replace: true }));
           return;
         }
-        setError("No se pudo cargar el perfil.");
+
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "No se pudo cargar el perfil.",
+        );
       });
 
     return () => {
