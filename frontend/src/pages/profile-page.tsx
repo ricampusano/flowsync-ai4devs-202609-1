@@ -21,16 +21,28 @@ export function ProfilePage() {
   useEffect(() => {
     if (!token) return;
 
+    let cancelled = false;
+
     getProfile(token)
-      .then(setProfile)
+      .then((data) => {
+        if (!cancelled) setProfile(data);
+      })
       .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "No se pudo cargar el perfil.",
-        );
+        if (cancelled) return;
+
+        if (err instanceof ApiError) {
+          // El token guardado ya no es válido (expiró, fue revocado, etc.):
+          // limpiamos la sesión en vez de dejar al usuario atascado en /profile.
+          logout().then(() => navigate("/login", { replace: true }));
+          return;
+        }
+        setError("No se pudo cargar el perfil.");
       });
-  }, [token]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, logout, navigate]);
 
   async function handleLogout() {
     await logout();

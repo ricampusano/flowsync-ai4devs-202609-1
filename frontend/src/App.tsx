@@ -14,8 +14,14 @@ function App() {
         path="/"
         element={<Navigate to={token ? "/profile" : "/login"} replace />}
       />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+      <Route
+        path="/login"
+        element={token ? <Navigate to="/profile" replace /> : <LoginPage />}
+      />
+      <Route
+        path="/signup"
+        element={token ? <Navigate to="/profile" replace /> : <SignupPage />}
+      />
       <Route
         path="/profile"
         element={
