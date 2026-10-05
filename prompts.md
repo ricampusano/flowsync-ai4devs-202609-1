@@ -76,7 +76,7 @@ Comprueba, dentro del alcance de cuentas y acceso:
 
 No modifiques código ni archivos.
 No pruebes funcionalidades de tareas.
-Para cada prueba indi
+Para cada prueba indica:
 - petición ejecutada
 - resultado observado
 - qué afirmación anterior confirma o refuta
