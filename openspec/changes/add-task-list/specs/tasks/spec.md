@@ -54,16 +54,6 @@ El sistema SHALL crear una tarea mediante `POST /api/v1/tasks` con un único dat
 - **WHEN** una persona autenticada crea una tarea enviando solo el título
 - **THEN** la tarea tiene estado `pending` y su responsable es esa persona
 
-#### Scenario: Estado y responsable enviados se ignoran
-
-- **WHEN** la petición de creación incluye además un estado o un responsable
-- **THEN** la tarea nace igualmente en `pending` y con quien la crea como responsable
-
-#### Scenario: Título sin espacios sobrantes
-
-- **WHEN** se crea una tarea con un título que lleva espacios al principio o al final
-- **THEN** la tarea se guarda con el título sin esos espacios
-
 ### Requirement: El título es obligatorio
 
 El sistema SHALL rechazar con 422 la creación de una tarea cuyo título falte, esté vacío o contenga solo espacios, sin crear ninguna tarea.
@@ -116,20 +106,10 @@ El sistema SHALL actualizar una tarea mediante `PATCH /api/v1/tasks/{id}`, acept
 - **WHEN** se envía como responsable a una persona que no existe
 - **THEN** la respuesta es 422 y la tarea no cambia
 
-#### Scenario: Sin ningún dato que cambiar
-
-- **WHEN** la petición de actualización no incluye ni estado ni responsable
-- **THEN** la respuesta es 422 y la tarea no cambia
-
 #### Scenario: Tarea inexistente
 
-- **WHEN** se actualiza una tarea que no existe, aunque el cuerpo de la petición no sea válido
+- **WHEN** se actualiza una tarea que no existe
 - **THEN** la respuesta es 404
-
-#### Scenario: El título no se modifica
-
-- **WHEN** la petición de actualización incluye un título distinto
-- **THEN** el título de la tarea no cambia
 
 ### Requirement: Solo tres operaciones
 
@@ -173,11 +153,6 @@ La aplicación SHALL mostrar en `/tasks` a la persona con sesión la lista compa
 - **WHEN** una persona abre la lista
 - **THEN** no ve fechas ni marca de vencida en ninguna fila
 
-#### Scenario: Carga y fallo de carga
-
-- **WHEN** la lista se está pidiendo al servidor, o la petición falla
-- **THEN** mientras espera se indica que está cargando y, si falla, aparece un aviso en castellano con la posibilidad de reintentar, sin mostrar la lista vacía como si no hubiera tareas
-
 #### Scenario: Lista vacía
 
 - **WHEN** una persona abre la lista y todavía no hay ninguna tarea
@@ -205,17 +180,12 @@ La aplicación SHALL ofrecer en la pantalla de la lista un formulario que pide �
 #### Scenario: Tarea creada
 
 - **WHEN** la persona escribe un título y pulsa el botón de crear
-- **THEN** la tarea aparece en la lista sin recargar ni navegar, con estado Pendiente y su propio nombre como responsable, y el campo queda vacío
+- **THEN** la tarea aparece en la lista sin recargar ni navegar, con estado Pendiente y su propio nombre como responsable
 
 #### Scenario: Título vacío o en blanco
 
 - **WHEN** la persona intenta crear una tarea con el título vacío o solo con espacios
 - **THEN** aparece junto al campo un mensaje en castellano que explica que falta el título y no se añade ninguna fila
-
-#### Scenario: Creación fallida
-
-- **WHEN** el servidor no puede completar la creación (error del servidor o sin conexión)
-- **THEN** aparece un aviso en castellano, no se añade ninguna fila y el título escrito se conserva en el campo
 
 ### Requirement: Cambiar el estado desde la fila
 
@@ -235,21 +205,6 @@ La aplicación SHALL permitir cambiar el estado de cualquier tarea desde su prop
 
 - **WHEN** la persona mira las opciones de estado de una fila
 - **THEN** las únicas opciones son Pendiente, En curso y Hecho, y la tarea está en exactamente una de ellas
-
-#### Scenario: Un cambio a la vez por fila
-
-- **WHEN** hay un cambio de estado en curso en una fila
-- **THEN** los botones de estado de esa fila no admiten otro cambio hasta que el servidor responda
-
-#### Scenario: Sesión perdida durante un cambio
-
-- **WHEN** el servidor responde 401 a una operación de tareas porque la sesión ya no es válida
-- **THEN** la persona es llevada a `/login` con el aviso de sesión caducada y deja de ver tareas
-
-#### Scenario: Cambio rechazado
-
-- **WHEN** el servidor rechaza o no puede completar el cambio de estado
-- **THEN** la fila vuelve a mostrar el estado anterior y aparece un aviso en castellano
 
 ### Requirement: Acceso entre la lista y el perfil
 

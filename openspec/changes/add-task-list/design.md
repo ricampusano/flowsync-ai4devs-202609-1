@@ -21,23 +21,22 @@ El backend sigue las convenciones de `CLAUDE.md`: esquema generado desde migraci
 
 3. **Responsable.** Relación `belongsTo` con `User` precargada en la lista. El transformer de tarea expone `{ id, title, status, assignee: { id, fullName } }` y deja fuera correo, iniciales y marcas del usuario. El `id` viaja en la API porque la actualización recibe `assigneeId`; la interfaz no lo pinta nunca y muestra `fullName ?? 'Sin nombre'`. *Riesgo aceptado:* el cliente conoce ids de usuarios que aparecen en la lista; no hay endpoint de usuarios, así que cambiar a una persona sin tarea solo es posible conociendo su id.
 
-4. **Validación.** Crear: `title` obligatorio con `trim()` y longitud mínima 1, sin máximo (punto abierto). El validador no declara `status` ni `assigneeId`, así que lo que llegue de más se descarta. Actualizar: `status` opcional con enum, `assigneeId` opcional que debe existir en `users`; `title` no está en el validador. «Al menos uno presente» no tiene regla nativa: el controlador lanza un error de validación sobre `status` con el mismo formato `errors` que el resto. Orden: primero `findOrFail` (404, aunque el cuerpo sea inválido) y después la validación (422). La constante de estados se define una vez en el backend y se espeja en `lib/types.ts`. Al guardar el título se normaliza sin espacios sobrantes. Comprobar al implementar que `trim()` se aplica antes de la comprobación de mínimo con espacios solos.
+4. **Validación.** Crear: `title` obligatorio: se rechaza ausente, vacío o formado solo por espacios (comprobando el valor sin alterar el que se guarda), sin máximo (punto abierto). Qué ocurre con campos extra en la petición no está decidido y el diseño no lo fija. Actualizar: `status` y `assigneeId` aceptados; `status` con enum cerrado y `assigneeId` que debe existir en `users`. Tarea inexistente → 404. El diseño no fija la precedencia entre errores concurrentes ni qué pasa con una actualización sin datos. La constante de estados se define una vez en el backend y se espeja en `lib/types.ts`.
 
 5. **Sin ordenación.** La consulta de la lista no declara `orderBy`. El orden resultante no es un contrato (punto abierto PA-3) y ninguna parte del frontend reordena.
 
 6. **Frontend.** Funciones `getTasks`, `createTask` y `updateTask` en `lib/api.ts` (el tipo de método admite `PATCH`) y tipos espejo en `lib/types.ts`. Página `tasks-page.tsx` bajo `ProtectedRoute` en `/tasks`, con `Card`, `Button`, `Input`, `Label` y `Alert` existentes. El estado se cambia con tres `Button` por fila, el activo con variante distinta; no hay componente Select ni se añade. Etiquetas Pendiente / En curso / Hecho en un único mapa de presentación; los identificadores de la API nunca se pintan.
 
-7. **Cambio de estado optimista.** La fila cambia al pulsar y sus botones quedan deshabilitados hasta que el servidor responde (un cambio a la vez por fila, lo que evita respuestas fuera de orden); si la petición falla, se restaura el estado previo y se muestra un `Alert`. Un 401 en cualquier operación de tareas cierra la sesión local y lleva a `/login` con el aviso de sesión caducada, como ya hace la rehidratación. Creación: se añade la fila devuelta por la API al final del estado local, sin recargar.
+7. **Refresco local.** El cambio de estado se refleja en la fila de inmediato y la creación añade la fila devuelta por la API a la lista local, sin recargar. Qué hacer ante un fallo de la petición, ante peticiones simultáneas o ante una sesión perdida a mitad de operación no está decidido y queda fuera del contrato; la implementación usará el tratamiento de errores ya existente en `lib/api.ts` sin añadir reglas nuevas.
 
-8. **Errores.** Se amplía la traducción de `lib/api.ts` con la etiqueta «el título» y se mapea también la regla de longitud mínima del título a «Falta rellenar el título.»; un título vacío o en blanco se avisa además en cliente antes de enviar. La página distingue tres estados de la lista (cargando, error con reintento, datos) y conserva el título escrito si la creación falla.
+8. **Título vacío.** Se amplía la traducción de `lib/api.ts` con la etiqueta «el título» para que el rechazo de un título ausente, vacío o en blanco se explique junto al campo en lenguaje corriente (E2-2 CA-1 y CA-2).
 
 9. **Estado vacío.** Cuando la lista llega vacía se muestra un texto explicativo y un botón que lleva el foco al campo de título.
 
 ## Risks / Trade-offs
 
 - [Orden no definido: la lista puede cambiar de aspecto entre cargas] → anotado como punto abierto; no se inventa criterio.
-- [Cualquier cambio es posible, incluso volver desde Hecho y marcar hecho por error] → es el comportamiento acordado por ahora (PA-7); la reversibilidad es inmediata.
-- [Dos personas cambian la misma tarea a la vez: gana el último] → sin aviso de conflicto (PA-8).
+- [Transiciones de estado y choque de ediciones sin decidir (PA-7, PA-8)] → anotado como punto abierto; este change no añade reglas.
 - [Reasignar (`assigneeId`) excede E2-1…E2-4 pero está pedido por la restricción «cualquiera cambia estado y responsable»; la interfaz no lo expone y el 422 de responsable inexistente permite sondear ids] → aceptado: no hay endpoint de usuarios y el id no es secreto en un equipo cerrado.
-- [Sin título máximo, un título enorme rompe el diseño de la fila] → mitigar con truncado visual solo por CSS, sin recortar el dato.
+- [Sin título máximo, un título enorme puede afectar al aspecto de la fila] → anotado como punto abierto (PA-9).
 - [Sin pruebas por decisión explícita] → la verificación del change se limita a typecheck, lint, build y comprobación manual de los scenarios.

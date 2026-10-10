@@ -34,6 +34,7 @@ Decisiones de producto sin tomar. Este change no las resuelve ni inventa un crit
 
 - **Orden de la lista (PA-3).** No hay regla de orden ni de agrupación. La lista no se ordena de forma explícita: el orden que se vea es el que devuelva la base de datos y no es un contrato. Sin él, E3-1 CA-5 («enumerar el trabajo de cada persona») no se sostiene con volumen.
 - **Longitud máxima del título (PA-9).** El umbral no está decidido, así que no se valida un máximo y E2-2 CA-3 (avisar en vez de recortar) queda fuera hasta fijarlo.
-- **Transiciones de estado (PA-7).** Se permite cualquier cambio entre los tres estados, incluida la vuelta desde Hecho, y sin confirmación. Es la lectura más simple, no una decisión de producto confirmada.
-- **Choque de ediciones (PA-8).** Gana el último cambio; no hay aviso de conflicto.
-- **Tareas «En curso» por persona (PA-4).** Sin límite.
+- **Transiciones de estado (PA-7).** No se decide qué transiciones son legales ni si se vuelve atrás desde Hecho; este change solo fija el conjunto de estados destino.
+- **Choque de ediciones (PA-8).** No se decide qué ocurre cuando dos personas cambian lo mismo; el change no define reglas de conflicto ni de concurrencia.
+- **Tareas «En curso» por persona (PA-4).** No se limita ni se decide.
+- **Errores y peticiones inválidas.** Más allá de los rechazos que derivan de las historias (título ausente, vacío o en blanco; estado fuera del conjunto; falta de sesión), no se fija ningún contrato de manejo de errores, precedencia entre errores, campos extra ni normalización del título.
