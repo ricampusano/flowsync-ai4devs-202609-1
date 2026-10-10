@@ -17,10 +17,10 @@
 
 ## 3. Interfaz de tareas
 
-- [ ] 3.1 Añadir los tipos de tarea a `lib/types.ts` y `getTasks`, `createTask` y `updateTask` a `lib/api.ts` (con `PATCH` y la etiqueta «el título» en la traducción de errores) y verificar `npm run build` en `frontend/`
-- [ ] 3.2 Crear la página de tareas con el formulario de solo título, la lista con título, responsable (`Sin nombre` si no lo tiene) y estado, sin fechas ni ordenación, y el estado vacío con su invitación a crear la primera; verificar `npm run build` y `npm run lint`
-- [ ] 3.3 Añadir los tres botones de estado por fila (Pendiente, En curso, Hecho) que reflejan el cambio de inmediato; verificar en el navegador que el cambio es inmediato, que funciona en tareas ajenas y que solo hay tres opciones
-- [ ] 3.4 Registrar `/tasks` bajo `ProtectedRoute` y enlazar perfil y lista entre sí sin cambiar el inicio; verificar que sin sesión `/tasks` lleva a `/login` y que el comodín sigue llevando a `/profile`
+- [x] 3.1 Añadir los tipos de tarea a `lib/types.ts` y `getTasks`, `createTask` y `updateTask` a `lib/api.ts` (con `PATCH` y la etiqueta «el título» en la traducción de errores) y verificar `npm run build` en `frontend/`
+- [x] 3.2 Crear la página de tareas con el formulario de solo título, la lista con título, responsable (`Sin nombre` si no lo tiene) y estado, sin fechas ni ordenación, y el estado vacío con su invitación a crear la primera; verificar `npm run build` y `npm run lint`
+- [x] 3.3 Añadir los tres botones de estado por fila (Pendiente, En curso, Hecho) que reflejan el cambio de inmediato; verificar en el navegador que el cambio es inmediato, que funciona en tareas ajenas y que solo hay tres opciones
+- [x] 3.4 Registrar `/tasks` bajo `ProtectedRoute` y enlazar perfil y lista entre sí sin cambiar el inicio; verificar que sin sesión `/tasks` lleva a `/login` y que el comodín sigue llevando a `/profile`
 
 ## 4. Cierre
 

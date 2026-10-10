@@ -30,3 +30,17 @@ export type LoginPayload = {
   email: string
   password: string
 }
+
+/** Conjunto cerrado de estados tal y como viajan por la API. */
+export type TaskStatus = 'pending' | 'in_progress' | 'done'
+
+/**
+ * Espejo de `TaskTransformer` del backend (app/transformers/task_transformer.ts).
+ * Del responsable solo llegan el id y el nombre.
+ */
+export type Task = {
+  id: number
+  title: string
+  status: TaskStatus
+  assignee: { id: number; fullName: string | null }
+}
