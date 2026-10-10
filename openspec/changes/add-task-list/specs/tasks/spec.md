@@ -23,7 +23,7 @@ El sistema SHALL devolver, mediante `GET /api/v1/tasks`, todas las tareas del es
 #### Scenario: Responsable identificado por nombre
 
 - **WHEN** se pide la lista y una tarea tiene responsable
-- **THEN** el responsable de esa tarea viaja con su nombre (nulo si no tiene) y sin su correo ni ningún otro dato de su cuenta
+- **THEN** el responsable de esa tarea viaja solo con su identificador y su nombre (nulo si no tiene), sin su correo, sus iniciales ni ningún otro dato de su cuenta
 
 #### Scenario: Sin tareas
 
@@ -123,7 +123,7 @@ El sistema SHALL actualizar una tarea mediante `PATCH /api/v1/tasks/{id}`, acept
 
 #### Scenario: Tarea inexistente
 
-- **WHEN** se actualiza una tarea que no existe
+- **WHEN** se actualiza una tarea que no existe, aunque el cuerpo de la petición no sea válido
 - **THEN** la respuesta es 404
 
 #### Scenario: El título no se modifica
@@ -173,6 +173,11 @@ La aplicación SHALL mostrar en `/tasks` a la persona con sesión la lista compa
 - **WHEN** una persona abre la lista
 - **THEN** no ve fechas ni marca de vencida en ninguna fila
 
+#### Scenario: Carga y fallo de carga
+
+- **WHEN** la lista se está pidiendo al servidor, o la petición falla
+- **THEN** mientras espera se indica que está cargando y, si falla, aparece un aviso en castellano con la posibilidad de reintentar, sin mostrar la lista vacía como si no hubiera tareas
+
 #### Scenario: Lista vacía
 
 - **WHEN** una persona abre la lista y todavía no hay ninguna tarea
@@ -207,6 +212,11 @@ La aplicación SHALL ofrecer en la pantalla de la lista un formulario que pide �
 - **WHEN** la persona intenta crear una tarea con el título vacío o solo con espacios
 - **THEN** aparece junto al campo un mensaje en castellano que explica que falta el título y no se añade ninguna fila
 
+#### Scenario: Creación fallida
+
+- **WHEN** el servidor no puede completar la creación (error del servidor o sin conexión)
+- **THEN** aparece un aviso en castellano, no se añade ninguna fila y el título escrito se conserva en el campo
+
 ### Requirement: Cambiar el estado desde la fila
 
 La aplicación SHALL permitir cambiar el estado de cualquier tarea desde su propia fila, ofreciendo solo Pendiente, En curso y Hecho.
@@ -225,6 +235,16 @@ La aplicación SHALL permitir cambiar el estado de cualquier tarea desde su prop
 
 - **WHEN** la persona mira las opciones de estado de una fila
 - **THEN** las únicas opciones son Pendiente, En curso y Hecho, y la tarea está en exactamente una de ellas
+
+#### Scenario: Un cambio a la vez por fila
+
+- **WHEN** hay un cambio de estado en curso en una fila
+- **THEN** los botones de estado de esa fila no admiten otro cambio hasta que el servidor responda
+
+#### Scenario: Sesión perdida durante un cambio
+
+- **WHEN** el servidor responde 401 a una operación de tareas porque la sesión ya no es válida
+- **THEN** la persona es llevada a `/login` con el aviso de sesión caducada y deja de ver tareas
 
 #### Scenario: Cambio rechazado
 
