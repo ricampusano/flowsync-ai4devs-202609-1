@@ -4,16 +4,16 @@
 
 ## 1. Modelo de datos
 
-- [ ] 1.1 Crear la migración de `tasks` (título, estado por defecto `pending`, responsable con FK a `users`, marcas de tiempo; sin fecha de vencimiento) y ejecutar `node ace migration:run`; verificar que `database/schema.ts` se regenera con la nueva tabla y que no contiene ninguna columna de fecha de vencimiento
-- [ ] 1.2 Crear el modelo `Task` con la relación `assignee` hacia `User` y verificar `npm run typecheck` en `backend/`
+- [x] 1.1 Crear la migración de `tasks` (título, estado por defecto `pending`, responsable con FK a `users`, marcas de tiempo; sin fecha de vencimiento) y ejecutar `node ace migration:run`; verificar que `database/schema.ts` se regenera con la nueva tabla y que no contiene ninguna columna de fecha de vencimiento
+- [x] 1.2 Crear el modelo `Task` con la relación `assignee` hacia `User` y verificar `npm run typecheck` en `backend/`
 
 ## 2. API de tareas
 
-- [ ] 2.1 Crear los validadores de creación (título obligatorio que rechaza ausente, vacío o solo espacios, sin máximo) y de actualización (estado enum `pending`/`in_progress`/`done` definido una sola vez, `assigneeId` existente) y verificar `npm run typecheck`
-- [ ] 2.2 Crear el transformer de tarea que expone `id`, `title`, `status` y `assignee { id, fullName }` y verificar que no incluye correo ni iniciales del usuario
-- [ ] 2.3 Crear el controlador con `index`, `store` y `update` (creación en `pending` y con `auth.user` como responsable; sin `orderBy`) y registrar el grupo `/api/v1/tasks` con `middleware.auth()` solo para esas tres acciones; verificar con `node ace list:routes` que existen exactamente `GET`, `POST` y `PATCH /:id`
-- [ ] 2.4 Verificar a mano con `curl` y un token los scenarios de la spec: lista vacía, crear solo con título (nace `pending` y a nombre de quien crea), 422 con título vacío o en blanco, 422 con estado `Hecho`, cambio de estado de una tarea ajena, 404 en `GET` y `DELETE` de `/:id` y 401 sin token
-- [ ] 2.5 Commitear el diff regenerado de `.adonisjs/` tras arrancar el servidor y verificar con `git status` que no quedan ficheros generados sin versionar
+- [x] 2.1 Crear los validadores de creación (título obligatorio que rechaza ausente, vacío o solo espacios, sin máximo) y de actualización (estado enum `pending`/`in_progress`/`done` definido una sola vez, `assigneeId` existente) y verificar `npm run typecheck`
+- [x] 2.2 Crear el transformer de tarea que expone `id`, `title`, `status` y `assignee { id, fullName }` y verificar que no incluye correo ni iniciales del usuario
+- [x] 2.3 Crear el controlador con `index`, `store` y `update` (creación en `pending` y con `auth.user` como responsable; sin `orderBy`) y registrar el grupo `/api/v1/tasks` con `middleware.auth()` solo para esas tres acciones; verificar con `node ace list:routes` que existen exactamente `GET`, `POST` y `PATCH /:id`
+- [x] 2.4 Verificar a mano con `curl` y un token los scenarios de la spec: lista vacía, crear solo con título (nace `pending` y a nombre de quien crea), 422 con título vacío o en blanco, 422 con estado `Hecho`, cambio de estado de una tarea ajena, 404 en `GET` y `DELETE` de `/:id` y 401 sin token
+- [x] 2.5 Commitear el diff regenerado de `.adonisjs/` tras arrancar el servidor y verificar con `git status` que no quedan ficheros generados sin versionar
 
 ## 3. Interfaz de tareas
 
