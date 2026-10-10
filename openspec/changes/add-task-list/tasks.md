@@ -24,4 +24,4 @@
 
 ## 4. Cierre
 
-- [ ] 4.1 Recorrer en el navegador los scenarios de la spec delta con dos cuentas distintas (misma lista para ambas, tarea de una visible para la otra, ningún dato de correo en pantalla) y ejecutar `npm run lint`, `npm run build` y `npm run typecheck` sin errores
+- [x] 4.1 Recorrer en el navegador los scenarios de la spec delta con dos cuentas distintas (misma lista para ambas, tarea de una visible para la otra, ningún dato de correo en pantalla) y ejecutar `npm run lint`, `npm run build` y `npm run typecheck` sin errores
