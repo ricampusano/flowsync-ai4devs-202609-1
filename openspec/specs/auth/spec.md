@@ -13,7 +13,7 @@ El sistema SHALL permitir crear una cuenta mediante `POST /api/v1/auth/signup` c
 #### Scenario: Registro correcto
 
 - **WHEN** se envía una petición de registro con un email no registrado, una contraseña de entre 8 y 32 caracteres y una confirmación idéntica
-- **THEN** la respuesta es satisfactoria y su cuerpo `data` contiene el usuario (`id`, `fullName`, `email`, `createdAt`, `updatedAt`, `initials`) y un `token`, y el cuerpo no contiene la contraseña
+- **THEN** la respuesta es satisfactoria y su cuerpo contiene `data.user` (`id`, `fullName`, `email`, `createdAt`, `updatedAt`, `initials`) y `data.token`, y el cuerpo no contiene la contraseña
 
 #### Scenario: Registro sin nombre
 
@@ -44,10 +44,15 @@ El sistema SHALL rechazar con estado 422 y una lista de errores por campo el reg
 - **WHEN** se envía un registro cuya `passwordConfirmation` no coincide con `password`
 - **THEN** la respuesta es 422 con un error de regla `sameAs` sobre el campo `passwordConfirmation`
 
-#### Scenario: Campos obligatorios ausentes
+#### Scenario: Confirmación de longitud inválida
 
-- **WHEN** se envía un registro sin alguno de los campos `fullName`, `email`, `password` o `passwordConfirmation`
-- **THEN** la respuesta es 422 con un error de regla `required` por cada campo ausente
+- **WHEN** se envía un registro cuya `passwordConfirmation` tiene menos de 8 o más de 32 caracteres
+- **THEN** la respuesta es 422 con un error de longitud sobre el campo `passwordConfirmation`, además del error `sameAs` si no coincide con `password`
+
+#### Scenario: Campos obligatorios ausentes o vacíos
+
+- **WHEN** se envía un registro en el que falta la clave `fullName`, `email`, `password` o `passwordConfirmation`, o cuyo valor es una cadena vacía
+- **THEN** la respuesta es 422 con un error de regla `required` por cada campo afectado, salvo `fullName`, cuyo valor vacío se acepta como nulo y la cuenta se crea sin nombre
 
 ### Requirement: Inicio de sesión por API
 
@@ -56,7 +61,7 @@ El sistema SHALL permitir iniciar sesión mediante `POST /api/v1/auth/login` con
 #### Scenario: Credenciales correctas
 
 - **WHEN** se envía un inicio de sesión con el email y la contraseña de una cuenta existente
-- **THEN** la respuesta es satisfactoria y `data` contiene el usuario y un `token`
+- **THEN** la respuesta es satisfactoria y `data.user` contiene el usuario y `data.token` el token
 
 #### Scenario: Credenciales incorrectas
 
@@ -65,7 +70,7 @@ El sistema SHALL permitir iniciar sesión mediante `POST /api/v1/auth/login` con
 
 #### Scenario: Datos mal formados
 
-- **WHEN** se envía un inicio de sesión sin email, sin contraseña o con un email que no tiene formato válido
+- **WHEN** se envía un inicio de sesión sin email o sin contraseña (o con alguno vacío), o con un email que no tiene formato válido
 - **THEN** la respuesta es 422 con un error por cada campo incorrecto
 
 #### Scenario: Varias sesiones simultáneas
@@ -87,10 +92,20 @@ El sistema SHALL devolver el perfil de la persona autenticada mediante `GET /api
 - **WHEN** el perfil pertenece a una cuenta con nombre completo de al menos dos palabras
 - **THEN** `initials` son en mayúsculas la primera letra de la primera y de la segunda palabra del nombre
 
-#### Scenario: Iniciales sin nombre o con una sola palabra
+#### Scenario: Iniciales con un nombre de una sola palabra
 
-- **WHEN** el perfil pertenece a una cuenta sin nombre, o con un nombre de una sola palabra
-- **THEN** `initials` son en mayúsculas las dos primeras letras de esa palabra (o, sin nombre, de la parte local del email)
+- **WHEN** el perfil pertenece a una cuenta con un nombre de una sola palabra
+- **THEN** `initials` son en mayúsculas las dos primeras letras de esa palabra
+
+#### Scenario: Iniciales sin nombre
+
+- **WHEN** el perfil pertenece a una cuenta sin nombre
+- **THEN** `initials` son en mayúsculas la primera letra de la parte del email anterior a la arroba y la primera letra del dominio (`ana@gmail.com` da `AG`)
+
+#### Scenario: Nombre con espacios repetidos
+
+- **WHEN** el nombre contiene espacios dobles o iniciales (por ejemplo `Ada  Lovelace`) porque se envió directamente a la API
+- **THEN** `initials` no son las de las dos palabras sino las dos primeras letras de la primera palabra (`AD`)
 
 ### Requirement: Acceso restringido a usuarios autenticados
 
@@ -113,7 +128,12 @@ El sistema SHALL invalidar el token usado en la petición `POST /api/v1/account/
 #### Scenario: Cierre correcto
 
 - **WHEN** una persona autenticada envía la petición de cierre de sesión
-- **THEN** la respuesta es satisfactoria con el mensaje `Logged out successfully`, y ese token deja de permitir el acceso al perfil
+- **THEN** la respuesta es satisfactoria con el cuerpo `{ "message": "Logged out successfully" }`, sin `data`, y ese token deja de permitir el acceso al perfil
+
+#### Scenario: Cierre con token inválido
+
+- **WHEN** se envía la petición de cierre de sesión sin token o con un token desconocido o ya revocado
+- **THEN** la respuesta es 401
 
 #### Scenario: Otras sesiones intactas
 
@@ -122,7 +142,7 @@ El sistema SHALL invalidar el token usado en la petición `POST /api/v1/account/
 
 ### Requirement: Formato de las respuestas de la API
 
-El sistema SHALL devolver siempre JSON en las rutas de autenticación, envolviendo las respuestas satisfactorias bajo la clave `data`.
+El sistema SHALL devolver siempre JSON en las rutas de autenticación, y SHALL envolver bajo la clave `data` las respuestas de registro, inicio de sesión y perfil; la respuesta de cierre de sesión es la excepción y no lleva `data`.
 
 #### Scenario: Cliente que no pide JSON
 
@@ -199,12 +219,12 @@ La aplicación SHALL mostrar en `/profile` a la persona con sesión su avatar co
 #### Scenario: Cierre de sesión
 
 - **WHEN** la persona pulsa «Cerrar sesión»
-- **THEN** el botón muestra «Cerrando sesión…» y la persona pasa a la pantalla de inicio de sesión sin sesión activa
+- **THEN** la persona pasa de inmediato a la pantalla de inicio de sesión sin sesión activa, sin esperar la respuesta del servidor
 
 #### Scenario: Cierre aunque el servidor falle
 
 - **WHEN** la persona pulsa «Cerrar sesión» y el servidor no responde o rechaza la petición
-- **THEN** la persona igualmente pasa a la pantalla de inicio de sesión sin sesión activa
+- **THEN** la persona igualmente pasa a la pantalla de inicio de sesión sin sesión activa y no recibe ningún aviso del fallo, aunque el token pueda seguir siendo válido en el servidor
 
 ### Requirement: Protección de rutas según la sesión
 
