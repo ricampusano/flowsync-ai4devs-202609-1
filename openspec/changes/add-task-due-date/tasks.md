@@ -22,4 +22,4 @@
 
 ## 4. Cierre
 
-- [ ] 4.1 Recorrer en el navegador los scenarios de la spec delta (poner, cambiar y quitar fecha, vencida con fecha pasada, hoy no vencida, hecha no vencida, lista sin fechas ni marcas) y ejecutar `npm run lint` y `npm run build` sin errores
+- [x] 4.1 Recorrer en el navegador los scenarios de la spec delta (poner, cambiar y quitar fecha, vencida con fecha pasada, hoy no vencida, hecha no vencida, lista sin fechas ni marcas) y ejecutar `npm run lint` y `npm run build` sin errores
