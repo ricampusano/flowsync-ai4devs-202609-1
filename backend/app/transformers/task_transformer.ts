@@ -12,9 +12,18 @@ class TaskAssigneeTransformer extends BaseTransformer<User> {
 }
 
 export default class TaskTransformer extends BaseTransformer<Task> {
+  constructor(
+    resource: Task,
+    private today: string
+  ) {
+    super(resource)
+  }
+
   toObject() {
     return {
       ...this.pick(this.resource, ['id', 'title', 'status']),
+      dueDate: this.resource.dueDate?.toISODate() ?? null,
+      isOverdue: this.resource.isOverdue(this.today),
       assignee: TaskAssigneeTransformer.transform(this.resource.assignee),
     }
   }

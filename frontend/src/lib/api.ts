@@ -43,6 +43,7 @@ const FIELD_LABELS: Record<string, string> = {
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
   title: 'el título',
+  dueDate: 'la fecha de vencimiento',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -63,6 +64,8 @@ function translate(error: BackendError): string {
       return 'Las contraseñas no coinciden.'
     case 'email':
       return 'Introduce una dirección de email válida.'
+    case 'date':
+      return `${label(field)} no es una fecha válida.`
     case 'required':
       return `Falta rellenar ${label(field)}.`
     case 'minLength':
@@ -109,6 +112,14 @@ function toApiError(status: number, body: unknown): ApiError {
   )
 }
 
+/** Día de calendario del navegador (`YYYY-MM-DD`), no el UTC. */
+function localDay(): string {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
+}
+
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
@@ -122,6 +133,8 @@ async function request<T>(
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
+  // El servidor decide si una tarea está vencida con el día de quien mira.
+  if (path.startsWith('/api/v1/tasks')) headers['X-Client-Date'] = localDay()
 
   let response: Response
   try {
@@ -179,6 +192,12 @@ export function getTasks(token: string): Promise<Task[]> {
   )
 }
 
+export function getTask(token: string, id: number): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${id}`, { token }).then(
+    (response) => response.data,
+  )
+}
+
 export function createTask(token: string, title: string): Promise<Task> {
   return request<{ data: Task }>('/api/v1/tasks', {
     method: 'POST',
@@ -195,6 +214,19 @@ export function updateTaskStatus(
   return request<{ data: Task }>(`/api/v1/tasks/${id}`, {
     method: 'PATCH',
     body: { status },
+    token,
+  }).then((response) => response.data)
+}
+
+/** `null` quita la fecha de vencimiento. */
+export function updateTaskDueDate(
+  token: string,
+  id: number,
+  dueDate: string | null,
+): Promise<Task> {
+  return request<{ data: Task }>(`/api/v1/tasks/${id}`, {
+    method: 'PATCH',
+    body: { dueDate },
     token,
   }).then((response) => response.data)
 }

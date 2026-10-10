@@ -169,7 +169,14 @@ export function TasksPage() {
                 <Card>
                   <CardContent className="grid gap-3">
                     <div className="min-w-0">
-                      <p className="font-medium break-words">{task.title}</p>
+                      <p className="font-medium break-words">
+                        <Link
+                          to={`/tasks/${task.id}`}
+                          className="hover:underline"
+                        >
+                          {task.title}
+                        </Link>
+                      </p>
                       <p className="text-muted-foreground text-sm">
                         {task.assignee.fullName ?? 'Sin nombre'}
                       </p>
