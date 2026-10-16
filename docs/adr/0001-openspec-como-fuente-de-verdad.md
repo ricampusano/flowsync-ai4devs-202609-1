@@ -23,7 +23,7 @@ Cambiar el comportamiento implica un change de OpenSpec cuya delta-spec exprese 
 
 ## Estado
 
-Aceptada. Se registra a posteriori: la práctica ya estaba en uso en los tres changes archivados y este ADR la formaliza, no la propone.
+Reemplazada por el [ADR 0002](0002-tests-como-fuente-de-verdad-ejecutable.md). Antes: Aceptada. Se registró a posteriori: la práctica ya estaba en uso en los tres changes archivados y este ADR la formaliza, no la propone.
 
 ## Consecuencias
 
