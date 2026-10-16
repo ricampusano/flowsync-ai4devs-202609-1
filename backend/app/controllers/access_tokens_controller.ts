@@ -1,6 +1,7 @@
 import User from '#models/user'
 import { loginValidator } from '#validators/user'
 import type { HttpContext } from '@adonisjs/core/http'
+import { ApiBearerAuth } from '@foadonis/openapi/decorators'
 import UserTransformer from '#transformers/user_transformer'
 
 export default class AccessTokensController {
@@ -16,6 +17,7 @@ export default class AccessTokensController {
     })
   }
 
+  @ApiBearerAuth()
   async destroy({ auth }: HttpContext) {
     const user = auth.getUserOrFail()
     if (user.currentAccessToken) {

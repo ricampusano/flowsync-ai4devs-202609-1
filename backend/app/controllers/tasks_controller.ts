@@ -6,9 +6,18 @@ import {
   toCalendarDay,
 } from '#validators/task'
 import type { HttpContext } from '@adonisjs/core/http'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@foadonis/openapi/decorators'
+import { dataListOf, dataOf, ref } from '#openapi/schemas'
 import TaskTransformer from '#transformers/task_transformer'
 import TaskDetailTransformer from '#transformers/task_detail_transformer'
 
+@ApiBearerAuth()
 export default class TasksController {
   /**
    * La lista del espacio: una sola, la misma para todo el mundo, sin filtrar
@@ -25,6 +34,22 @@ export default class TasksController {
    *
    * Acotar es solo lectura: ninguna tarea cambia por consultarla.
    */
+  @ApiOperation({
+    summary: 'Listar las tareas del espacio',
+    description:
+      'Sin `status` devuelve las tareas `pending` e `in_progress`; las `done` solo salen al pedirlas con `status=done`. ' +
+      'Ordenadas de la más reciente a la más antigua. ' +
+      '**Divergencia con OpenSpec:** la especificación exige un 422 sobre `status` si el valor no es uno de los tres estados; ' +
+      'la implementación actual acepta cualquier cadena y un valor desconocido (p. ej. `archivado`) devuelve `200` con `data: []`.',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Acota la lista a un estado: `pending`, `in_progress` o `done`.',
+    schema: { type: 'string' },
+  })
+  @ApiResponse({ status: 200, description: 'Lista de tareas.', schema: dataListOf('Task') })
+  @ApiResponse({ status: 401, description: 'Sin sesión válida.', schema: ref('Unauthorized') })
   async index({ request, serialize }: HttpContext) {
     const { status } = await request.validateUsing(listTasksValidator)
 
@@ -51,6 +76,24 @@ export default class TasksController {
    * Una tarea suelta, con todo lo que tiene: es la única lectura que informa
    * del vencimiento, y por eso es la única que exige el día de quien mira.
    */
+  @ApiOperation({
+    summary: 'Ver una tarea con todo su detalle',
+    description: 'Única lectura que informa del vencimiento; por eso exige `today`.',
+  })
+  @ApiQuery({
+    name: 'today',
+    required: true,
+    description: 'Día de quien mira, `AAAA-MM-DD`, contra el que se resuelve `isOverdue`.',
+    schema: { type: 'string', format: 'date' },
+  })
+  @ApiResponse({ status: 200, description: 'La tarea.', schema: dataOf('TaskDetail') })
+  @ApiResponse({ status: 401, description: 'Sin sesión válida.', schema: ref('Unauthorized') })
+  @ApiResponse({ status: 404, description: 'La tarea no existe.' })
+  @ApiResponse({
+    status: 422,
+    description: '`today` ausente o no es una fecha válida.',
+    schema: ref('ValidationErrors'),
+  })
   async show({ params, request, serialize }: HttpContext) {
     const { today } = await request.validateUsing(taskReferenceDayValidator)
     const task = await Task.findOrFail(params.id)
@@ -63,6 +106,33 @@ export default class TasksController {
    * Crear cuesta un título. El responsable y el estado no se leen de la
    * petición ni aunque vengan: los pone el sistema.
    */
+  @ApiOperation({
+    summary: 'Crear una tarea',
+    description:
+      'Nace `pending` y a nombre de quien la crea; `status` y el responsable no se leen del cuerpo.',
+  })
+  @ApiBody({
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 200,
+          description: 'Se recortan los espacios de los extremos antes de validar.',
+        },
+      },
+      required: ['title'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Tarea creada.', schema: dataOf('Task') })
+  @ApiResponse({ status: 401, description: 'Sin sesión válida.', schema: ref('Unauthorized') })
+  @ApiResponse({
+    status: 422,
+    description: '`title` ausente, vacío o de más de 200 caracteres.',
+    schema: ref('ValidationErrors'),
+  })
   async store({ request, response, auth, serialize }: HttpContext) {
     const { title } = await request.validateUsing(createTaskValidator)
     const user = auth.getUserOrFail()
