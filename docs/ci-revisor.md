@@ -12,15 +12,14 @@ El fichero del workflow no basta. Hasta que no se hagan estos pasos, el job fall
 
 1. **Crear el secreto con la credencial** (ver [Credencial](#credencial)). Sin él, el job falla al
    arrancar la acción.
-2. **Crear el archivo de calibración `REVIEW.md` en la raíz del repositorio.** El prompt le dice al
-   revisor que lo lea antes que nada, si existe, para saber qué cuenta como grave y cuántas
-   sugerencias menores caben. Hoy no existe, así que el revisor aplica su propio criterio, que es
-   justo el ruido que ese archivo debe acotar.
-3. **Permitir la acción en el repositorio.** Si la organización restringe qué acciones se pueden
+2. **Permitir la acción en el repositorio.** Si la organización restringe qué acciones se pueden
    usar (*Settings → Actions → General → Actions permissions*), hay que autorizar
    `anthropics/claude-code-action` y `actions/checkout`.
-4. **Comprobarlo con un PR de prueba** desde una rama de este mismo repositorio. Lo primero que hay
+3. **Comprobarlo con un PR de prueba** desde una rama de este mismo repositorio. Lo primero que hay
    que mirar es que los comentarios aparezcan en el PR y no solo en el log de la ejecución.
+
+El criterio del revisor (qué es grave, cuántas sugerencias caben y dónde no reportar) vive en
+[`REVIEW.md`](../REVIEW.md), en la raíz. El prompt le dice que lo lea antes que nada.
 
 No hace falta instalar la GitHub App de Claude. El job se autentica en GitHub con el `GITHUB_TOKEN`
 que crea cada ejecución, limitado a leer el repositorio y comentar en el PR. Por eso los
