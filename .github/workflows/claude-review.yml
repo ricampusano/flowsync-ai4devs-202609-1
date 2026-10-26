@@ -1,0 +1,81 @@
+# Revisor automático de cada PR con la acción oficial de Claude Code.
+# Publica los hallazgos como comentarios en el PR, no solo en el log.
+# Pasos manuales pendientes, credenciales y coste: docs/ci-revisor.md.
+name: Revisión de Claude
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Un push nuevo al PR deja obsoleta la revisión en curso: se cancela en vez de
+# pagarla entera.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Leer el repositorio y comentar en el PR. Sin `id-token: write`: se autentica
+# en GitHub con el GITHUB_TOKEN del job, no con la GitHub App de Claude.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    # Un PR desde un fork no recibe los secretos del repositorio ni un token
+    # con escritura: se salta en vez de fallar. Ver docs/ci-revisor.md.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # El commit de merge del PR y su primer padre (la base): con eso basta
+      # para sacar el diff sin darle al revisor ningún comando.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      # El diff se prepara aquí, fuera del alcance del modelo, y se deja dentro
+      # del directorio de trabajo para que lo lea con Read.
+      - name: Preparar el diff del PR
+        run: |
+          mkdir -p .pr-review
+          git diff --name-status HEAD^1 HEAD > .pr-review/files.txt
+          git diff HEAD^1 HEAD > .pr-review/pr.diff
+
+      - uses: anthropics/claude-code-action@925afb53776cf1a2b738c6bdbed37b4d4000ef13 # v1
+        with:
+          # Credencial de suscripción (`claude setup-token`). Con una clave de
+          # API de la consola, cambia esta línea por
+          #   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Las entradas no son intercambiables: ver docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisa este pull request. El resultado del merge está en el
+            directorio de trabajo.
+
+            1. Lee `REVIEW.md`, en la raíz, antes que nada: dice qué cuenta como
+               grave y cuántas sugerencias menores caben. Respétalo.
+            2. El cambio está en `.pr-review/files.txt` (ficheros tocados) y
+               `.pr-review/pr.diff` (diff unificado). Léelos con Read, y abre con
+               Read, Grep y Glob los ficheros del repositorio que necesites.
+            3. Publica cada hallazgo sobre la línea concreta con
+               `mcp__github_inline_comment__create_inline_comment` (con
+               `confirmed: true`). Si un hallazgo no tiene una línea propia,
+               ánclalo en la línea cambiada más relacionada. El resumen contado
+               de las sugerencias que no caben va en el último comentario.
+
+            No redirijas salida a ficheros: lee la salida directa de cada
+            herramienta.
+          # Lectura acotada al directorio de trabajo: con `Read` a secas, el
+          # modelo podría leer fuera (por ejemplo, el entorno del proceso, que
+          # lleva la credencial) y publicarlo en un comentario. Sin Bash ni red,
+          # el único canal de salida es el comentario en línea.
+          claude_args: |
+            --model sonnet --effort medium
+            --max-turns 40
+            --allowedTools "Read(./**),Grep(./**),Glob(./**),mcp__github_inline_comment__create_inline_comment"
+            --disallowedTools "Bash,WebFetch,WebSearch,Write,Edit,NotebookEdit"

@@ -15,7 +15,9 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "openapi:generate": "node ace openapi:generate",
+    "openapi:check": "node ace openapi:check"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -70,6 +72,9 @@
     "better-sqlite3": "^12.10.0",
     "luxon": "^3.7.2",
     "reflect-metadata": "^0.2.2"
+  },
+  "overrides": {
+    "jsonschema": "1.4.1"
   },
   "hotHook": {
     "boundaries": [

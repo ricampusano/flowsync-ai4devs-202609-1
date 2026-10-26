@@ -62,6 +62,7 @@ Las cinco operaciones están anotadas con los decoradores de `@foadonis/openapi`
 controladores, así que el documento servido en **`/api.json`** (y la interfaz en `/api`) lleva el
 parámetro `status` con sus tres valores, el `today` obligatorio, los cuerpos de las escrituras y los
 códigos `200`/`201`/`401`/`404`/`422` de cada operación, cada uno con la forma de lo que devuelve.
+Ese mismo documento está versionado en [`docs/api/openapi.json`](../../api/openapi.json).
 
 Las formas que se repiten viven en
 [`backend/app/openapi/schemas.ts`](../../../backend/app/openapi/schemas.ts) y se publican en
@@ -71,7 +72,9 @@ transformers: así el documento **no puede** enseñar el vencimiento en la lista
 
 Ese fichero es documentación, no validación: describe lo que los controladores ya hacen. Si cambia un
 transformer o un validador, se actualiza en el mismo commit. El documento se construye en cada
-petición y no hay fichero que generar; lo que se commitea es el diff de `.adonisjs/`.
+petición y además está versionado en `docs/api/openapi.json`: lo que se commitea es ese fichero
+regenerado con `npm run openapi:generate` (`npm run openapi:check` dice si está desfasado) junto con
+el diff de `.adonisjs/`.
 
 ## Reglas de negocio: dónde vive cada una
 
