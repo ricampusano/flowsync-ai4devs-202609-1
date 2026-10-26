@@ -62,6 +62,7 @@ Las cinco operaciones están anotadas con los decoradores de `@foadonis/openapi`
 controladores, así que el documento servido en **`/api.json`** (y la interfaz en `/api`) lleva el
 parámetro `status` con sus tres valores, el `today` obligatorio, los cuerpos de las escrituras y los
 códigos `200`/`201`/`401`/`404`/`422` de cada operación, cada uno con la forma de lo que devuelve.
+Ese mismo documento está versionado en [`docs/api/openapi.json`](../../api/openapi.json).
 
 Las formas que se repiten viven en
 [`backend/app/openapi/schemas.ts`](../../../backend/app/openapi/schemas.ts) y se publican en
