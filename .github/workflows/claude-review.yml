@@ -1,0 +1,64 @@
+# Revisor automático de cada PR con la acción oficial de Claude Code.
+# Publica los hallazgos como comentarios en el PR, no solo en el log.
+# Pasos manuales pendientes, credenciales y coste: docs/ci-revisor.md.
+name: Revisión de Claude
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Un push nuevo al PR deja obsoleta la revisión en curso: se cancela en vez de
+# pagarla entera.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Leer el repositorio y comentar en el PR. Sin `id-token: write`: se autentica
+# en GitHub con el GITHUB_TOKEN del job, no con la GitHub App de Claude.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    # Un PR desde un fork no recibe los secretos del repositorio ni un token
+    # con escritura: se salta en vez de fallar. Ver docs/ci-revisor.md.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: anthropics/claude-code-action@925afb53776cf1a2b738c6bdbed37b4d4000ef13 # v1
+        with:
+          # Credencial de suscripción (`claude setup-token`). Con una clave de
+          # API de la consola, cambia esta línea por
+          #   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Las entradas no son intercambiables: ver docs/ci-revisor.md.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisa este pull request. La rama del PR ya está en el directorio
+            de trabajo.
+
+            1. Si existe `REVIEW.md` en la raíz, léelo antes que nada: dice qué
+               cuenta como grave y cuántas sugerencias menores caben. Respétalo.
+            2. Mira el cambio con `gh pr view` y `gh pr diff`, y abre con Read,
+               Grep y Glob los ficheros que necesites para entenderlo.
+            3. Publica cada hallazgo sobre la línea concreta con
+               `mcp__github_inline_comment__create_inline_comment` (con
+               `confirmed: true`), y cierra con un único comentario general con
+               `gh pr comment` que resuma lo encontrado o diga que no hay nada.
+
+            No redirijas salida a ficheros (nada de `>`, `>>` ni `tee`): lee la
+            salida directa de cada comando.
+          claude_args: |
+            --model sonnet --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
