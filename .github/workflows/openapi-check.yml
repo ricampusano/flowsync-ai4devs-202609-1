@@ -1,0 +1,42 @@
+# Comprueba que docs/api/openapi.json coincide con el documento OpenAPI que
+# genera el código. Solo lee: si está desfasado, el job falla y lista las
+# diferencias; regenerarlo y commitearlo es cosa de quien abre el cambio
+# (`npm run openapi:generate` en backend/).
+name: OpenAPI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Lo único que hace falta es leer el repositorio para el checkout.
+permissions:
+  contents: read
+
+jobs:
+  openapi-check:
+    name: openapi:check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # La comprobación arranca la app, y `start/env.ts` valida las variables
+      # al arrancar. La clave es desechable: el documento no depende de ella.
+      - name: Preparar .env
+        run: cp .env.example .env && node ace generate:key
+
+      - run: npm run openapi:check
