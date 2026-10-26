@@ -14,7 +14,8 @@ Solo para revisiones de código. Si choca con tu criterio general, manda este ar
   README de su capability (`docs/capabilities/<nombre>/README.md`).
 
 Cualquier otra cosa es sugerencia: nombres, estructura, refactors, tests deseables, rendimiento sin
-una medida que lo respalde.
+una medida que lo respalde. También formato, lint y tipos: ningún job de CI los ejecuta, así que si
+ves uno roto en el diff, cuenta como sugerencia.
 
 ## Tope de sugerencias
 
@@ -23,8 +24,6 @@ en el comentario final («y 7 más: 4 de nombres, 3 de tests»), sin detallarlas
 
 ## Dónde no reportar
 
-- Formato y lint: los vigilan Prettier, ESLint (backend) y oxlint (frontend).
-- Errores de tipos: los vigilan `npm run typecheck` y `npm run build`.
 - Desfase entre `docs/api/openapi.json` y el código: lo vigila el job `openapi:check`.
 - Ficheros generados: `backend/.adonisjs/`, `backend/database/schema.ts`,
   `frontend/src/components/ui/` y los `package-lock.json`.

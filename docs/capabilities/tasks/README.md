@@ -72,7 +72,9 @@ transformers: así el documento **no puede** enseñar el vencimiento en la lista
 
 Ese fichero es documentación, no validación: describe lo que los controladores ya hacen. Si cambia un
 transformer o un validador, se actualiza en el mismo commit. El documento se construye en cada
-petición y no hay fichero que generar; lo que se commitea es el diff de `.adonisjs/`.
+petición y además está versionado en `docs/api/openapi.json`: lo que se commitea es ese fichero
+regenerado con `npm run openapi:generate` (`npm run openapi:check` dice si está desfasado) junto con
+el diff de `.adonisjs/`.
 
 ## Reglas de negocio: dónde vive cada una
 

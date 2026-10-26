@@ -3,8 +3,25 @@
 [`.github/workflows/claude-review.yml`](../.github/workflows/claude-review.yml) lanza
 [la acción oficial de Claude Code](https://github.com/anthropics/claude-code-action) cada vez que se
 abre, se actualiza o se reabre un PR. Claude lee el cambio y publica cada hallazgo como comentario
-sobre la línea afectada, más un comentario general con el resumen. No aprueba, no bloquea y no
-modifica código: solo comenta.
+sobre la línea afectada. No aprueba, no bloquea y no modifica código: solo comenta. Si no encuentra
+nada, no publica nada.
+
+## Qué puede tocar el revisor
+
+El diff del PR lo prepara un paso previo del job (`.pr-review/files.txt` y `.pr-review/pr.diff`), así
+que el revisor no necesita ningún comando para obtenerlo. Sus herramientas son las mínimas:
+
+- `Read(./**)`, `Grep(./**)` y `Glob(./**)`: leer, **solo dentro del directorio de trabajo**. Con
+  `Read` a secas podría leer fuera, por ejemplo el entorno del proceso, que contiene la credencial.
+- `mcp__github_inline_comment__create_inline_comment`: comentar sobre una línea del PR. Es su único
+  canal de salida.
+- Prohibidas de forma explícita: `Bash`, `WebFetch`, `WebSearch`, `Write`, `Edit` y `NotebookEdit`.
+  Sin `Bash` no hay `gh pr comment --body-file …` ni sustituciones de comandos con las que publicar
+  un fichero cualquiera.
+
+Esto reduce el riesgo, no lo elimina. El diff y los ficheros del PR siguen entrando en el prompt, y
+con ellos cualquier instrucción inyectada. Lo que queda acotado es lo que el modelo puede leer y por
+dónde puede sacarlo.
 
 ## Pasos manuales pendientes
 
